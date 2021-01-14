@@ -32,7 +32,7 @@ const CombatList = observer<PropTypes>((props: PropTypes) => {
           </TableHead>
           <TableBody>
             {store.combat && store.combat.order.order.map((token, index) => (
-              <CombatRow rank={index} token={token} />
+              <CombatRow store={store} rank={index} token={token} />
             ))}
           </TableBody>
         </Table>

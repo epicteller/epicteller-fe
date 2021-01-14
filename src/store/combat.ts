@@ -47,6 +47,7 @@ export class CombatStore {
   }
 
   private async fetchCombat(combatId: string) {
+    this.loading = true;
     const combat = await CombatStore.getCombat(combatId);
     runInAction(() => {
       this.combat = combat;
@@ -55,10 +56,25 @@ export class CombatStore {
   }
 
   fetchCombatIfNeed(combatId: string) {
-    if (this.combat && combatId === this.combat.id && !this.loading) {
+    this.fetchCombat(combatId);
+  }
+
+  async removeCombatToken(token: CombatToken) {
+    if (!this.combat) {
       return;
     }
-    this.fetchCombat(combatId);
+    await epAPI.delete(
+      `/combats/${this.combat.id}/tokens/${token.name}`,
+    ).catch((e) => {
+      throw e;
+    });
+    runInAction(() => {
+      if (!this.combat) {
+        return;
+      }
+      this.combat.order.order = this.combat.order.order.filter((item) => token !== item);
+    });
+    this.fetchCombatIfNeed(this.combat.id);
   }
 
   static async getCombat(combatId: string): Promise<Combat> {
