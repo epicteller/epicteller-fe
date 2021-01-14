@@ -13,7 +13,6 @@ const useStyles = makeStyles((theme) => ({
   list: {
     margin: theme.spacing(4, 0, 2),
   },
-
 }));
 
 const CombatList = observer<PropTypes>((props: PropTypes) => {
