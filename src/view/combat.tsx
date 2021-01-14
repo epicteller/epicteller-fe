@@ -1,6 +1,7 @@
 import { Box } from '@material-ui/core';
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import CombatList from '../component/Combat/CombatList';
 import { StoreContext } from '../store';
 
 interface ParamTypes {
@@ -9,14 +10,13 @@ interface ParamTypes {
 
 export default function CombatView() {
   const { combatId } = useParams<ParamTypes>();
-  const {combatStore} = useContext(StoreContext);
+  const { combatStore } = useContext(StoreContext);
+  useEffect(() => {
+    combatStore.fetchCombatIfNeed(combatId);
+  });
   return (
     <Box>
-      <TableContainer>
-        <Table>
-
-        </Table>
-      </TableContainer>
+      <CombatList store={combatStore} />
     </Box>
   );
 }

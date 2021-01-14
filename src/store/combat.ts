@@ -1,42 +1,67 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, runInAction } from 'mobx';
 import epAPI from '../api';
 
-interface UnloadedCombat {
-  loading: true;
+export interface Character {
+  id: string
+  name: string
 }
 
-interface Character {
-  Id: 
+export interface CombatToken {
+  name: string
+  initiative: number
+  character?: Character
 }
 
-interface CombatToken {
-
+export interface CombatOrder {
+  order: Array<CombatToken>
+  currentToken?: CombatToken
+  roundCount: number
 }
 
-interface CombatOrder {
-
+export enum CombatState {
+  INITIATING = 'initiating',
+  RUNNING = 'running',
+  ENDED = 'ended',
 }
 
-interface Room {
-
+export interface Combat {
+  id: string
+  state: CombatState
+  isRemoved: boolean
+  tokens: {[tokenName: string]: CombatToken}
+  order: CombatOrder
+  data: object
+  startedAt: number
+  endedAt?: number
+  created: number
+  updated: number
 }
-
-interface Combat {
-  id: string;
-
-}
-
-export type PossiblyLoadedCombat = UnloadedCombat | Combat;
 
 export class CombatStore {
   combat?: Combat;
+
   loading = true;
 
   constructor() {
     makeAutoObservable(this);
   }
-  
-  async getCombat(combatId: string): Promise<Combat> {
+
+  private async fetchCombat(combatId: string) {
+    const combat = await CombatStore.getCombat(combatId);
+    runInAction(() => {
+      this.combat = combat;
+      this.loading = false;
+    });
+  }
+
+  fetchCombatIfNeed(combatId: string) {
+    if (this.combat && combatId === this.combat.id && !this.loading) {
+      return;
+    }
+    this.fetchCombat(combatId);
+  }
+
+  static async getCombat(combatId: string): Promise<Combat> {
     const response = await epAPI.get(
       `/combats/${combatId}`,
     ).catch((e) => {
@@ -44,7 +69,6 @@ export class CombatStore {
     });
     return response.data as Combat;
   }
-
 }
 
 export const combatStore = new CombatStore();
