@@ -1,9 +1,10 @@
-import { Table, TableBody, TableCell, TableHead, TableRow, Container, Paper, TableContainer, makeStyles } from '@material-ui/core';
+import { Container, Paper, makeStyles } from '@material-ui/core';
 
 import { observer } from 'mobx-react-lite';
 import React from 'react';
-import { CombatStore } from '../../store/combat';
-import CombatRow from './CombatRow';
+import { DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd';
+import { CombatStore, CombatToken } from '../../store/combat';
+import CombatCard from './CombatCard';
 
 interface PropTypes {
   store: CombatStore
@@ -13,29 +14,78 @@ const useStyles = makeStyles((theme) => ({
   list: {
     margin: theme.spacing(4, 0, 2),
   },
+  inner: {
+    padding: theme.spacing(2, 2, 1, 2),
+  },
+  rankCell: {
+    minWidth: theme.spacing(1),
+    textOverflow: 'ellipsis',
+  },
+  nameCell: {
+    textOverflow: 'ellipsis',
+    paddingRight: 0,
+  },
+  initCell: {
+    textOverflow: 'ellipsis',
+    paddingLeft: 0,
+  },
 }));
+
+function reorder<T>(list: Array<T>, startIndex: number, endIndex: number): Array<T> {
+  const result = Array.from(list);
+  const [removed] = result.splice(startIndex, 1);
+  result.splice(endIndex, 0, removed);
+
+  return result;
+}
+
+const DroppableComponent = (
+  onDragEnd: (result: any, provided: any) => void,
+) => (props: any) => (
+  <DragDropContext onDragEnd={onDragEnd}>
+    <Droppable droppableId="1" direction="vertical">
+      {(provided) => (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <Paper ref={provided.innerRef} {...provided.droppableProps} {...props}>
+          {props.children}
+          {provided.placeholder}
+        </Paper>
+      )}
+    </Droppable>
+  </DragDropContext>
+);
 
 const CombatList = observer<PropTypes>((props: PropTypes) => {
   const classes = useStyles();
   const { store } = props;
+  const { combat } = store;
+
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination || !combat) {
+      return;
+    }
+    const newOrder = reorder<CombatToken>(
+      combat.order.order,
+      result.source.index,
+      result.destination.index,
+    );
+    store.reorderToken(newOrder);
+  };
+
   return (
     <Container className={classes.list}>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell align="right" width="20%">#</TableCell>
-              <TableCell width="50%">名字</TableCell>
-              <TableCell align="right" width="20%">先攻值</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {store.combat && store.combat.order.order.map((token, index) => (
-              <CombatRow store={store} rank={index} token={token} />
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Paper elevation={3} component={DroppableComponent(onDragEnd)} className={classes.inner}>
+        {combat ? combat.order.order.map((token, index) => (
+          <CombatCard
+            key={token.name}
+            store={store}
+            rank={index}
+            token={token}
+            isCurrentToken={Boolean(combat.order.currentToken && combat.order.currentToken.name === token.name)}
+          />
+        )) : ''}
+      </Paper>
+
     </Container>
   );
 });
