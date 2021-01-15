@@ -19,7 +19,7 @@ const CombatView = observer(() => {
     combatStore.fetchCombatIfNeed(combatId);
   }, []);
   useEffect(() => {
-    const wsClient = new WebSocket(`ws://localhost:8000/combats/${combatId}`);
+    const wsClient = new WebSocket(`ws://api.epicteller.com/combats/${combatId}`);
     wsClient.onopen = (() => {
       setWs(wsClient);
     });

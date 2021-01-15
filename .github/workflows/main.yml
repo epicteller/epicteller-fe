@@ -33,7 +33,7 @@ jobs:
           GENERATE_SOURCEMAP: 'false'
       
       - name: Upload COS
-        uses: zkqiang/tencent-cos-action@v0.1.0
+        uses: KawashiroNitori/tencent-cos-action@endpoint-support
         with:
           args: upload .eslintignore /.eslintignore && delete -r -f / && upload -rs ./build/ /
           secret_id: ${{ secrets.COS_SECRET_ID }}
