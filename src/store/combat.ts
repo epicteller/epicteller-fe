@@ -5,11 +5,12 @@ import epAPI from '../api';
 export interface Character {
   id: string
   name: string
+  avatar?: string
 }
 
 export interface CombatToken {
   name: string
-  initiative: number
+  initiative?: number
   character?: Character
 }
 
@@ -41,6 +42,11 @@ export interface Combat {
 export interface CombatMsg {
   action: object
   combat: Combat
+}
+
+export interface AddTokenResponse {
+  token: CombatToken
+  rank: number
 }
 
 export class CombatStore {
@@ -75,6 +81,32 @@ export class CombatStore {
       `/combats/${this.combat.id}/tokens/${token.name}`,
     ).catch((e) => {
       throw e;
+    });
+  }
+
+  async addToken(token: CombatToken) {
+    if (!this.combat) {
+      return;
+    }
+    if (token.name in this.combat.tokens) {
+      return;
+    }
+    const response = await epAPI.post(
+      `/combats/${this.combat.id}/tokens`,
+      {
+        name: token.name,
+        initiative: token.initiative,
+      },
+    ).catch((e) => {
+      throw e;
+    });
+    const data = response.data as AddTokenResponse;
+    runInAction(() => {
+      if (!this.combat) {
+        return;
+      }
+      this.combat.tokens[data.token.name] = data.token;
+      this.combat.order.order.splice(data.rank, 0, data.token);
     });
   }
 
@@ -116,6 +148,60 @@ export class CombatStore {
       },
     ).catch((e) => {
       throw e;
+    });
+  }
+
+  async runCombat() {
+    if (!this.combat) {
+      return;
+    }
+    const response = await epAPI.put(
+      `/combats/${this.combat.id}`,
+      {
+        action: 'run',
+      },
+    ).catch((e) => {
+      throw e;
+    });
+    const combat = response.data as Combat;
+    runInAction(() => {
+      this.combat = combat;
+    });
+  }
+
+  async endCombat() {
+    if (!this.combat) {
+      return;
+    }
+    const response = await epAPI.put(
+      `/combats/${this.combat.id}`,
+      {
+        action: 'end',
+      },
+    ).catch((e) => {
+      throw e;
+    });
+    const combat = response.data as Combat;
+    runInAction(() => {
+      this.combat = combat;
+    });
+  }
+
+  async nextToken() {
+    if (!this.combat) {
+      return;
+    }
+    const response = await epAPI.put(
+      `/combats/${this.combat.id}`,
+      {
+        action: 'next',
+      },
+    ).catch((e) => {
+      throw e;
+    });
+    const combat = response.data as Combat;
+    runInAction(() => {
+      this.combat = combat;
     });
   }
 

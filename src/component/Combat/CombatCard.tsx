@@ -1,4 +1,4 @@
-import { Avatar, Card, Box, Fade, IconButton, makeStyles, Menu, MenuItem, Typography } from '@material-ui/core';
+import { Avatar, Box, Fade, IconButton, makeStyles, Menu, MenuItem, Typography, ListItem, Divider } from '@material-ui/core';
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
@@ -22,18 +22,16 @@ const useStyles = makeStyles(({ spacing, palette }) => {
       display: 'flex',
       padding: spacing(2),
       minWidth: 288,
-      borderRadius: 12,
-      boxShadow: '0 2px 4px 0 rgba(138, 148, 159, 0.2)',
       '& > *:nth-child(1)': {
         marginRight: spacing(2),
       },
       '& > *:nth-child(2)': {
         flex: 'auto',
       },
-      marginBottom: spacing(2),
     },
     avatar: {
       color: palette.getContrastText(deepOrange[500]),
+      backgroundColor: deepOrange[500],
     },
     heading: {
       fontFamily: family,
@@ -69,7 +67,7 @@ const getItemStyle = (isDragging: boolean, draggableStyle: any) => ({
 const DraggableComponent = (id: string, index: number) => (props: any) => (
   <Draggable draggableId={id} index={index}>
     {(provided, snapshot) => (
-      <Card
+      <ListItem
         ref={provided.innerRef}
         style={getItemStyle(snapshot.isDragging, provided.draggableProps.style)}
         // eslint-disable-next-line react/jsx-props-no-spreading
@@ -80,7 +78,7 @@ const DraggableComponent = (id: string, index: number) => (props: any) => (
         {...props}
       >
         {props.children}
-      </Card>
+      </ListItem>
     )}
   </Draggable>
 );
@@ -121,8 +119,12 @@ const CombatCard = observer<PropsType>(({ store, rank, token, isCurrentToken }) 
   };
 
   return (
-    <Card elevation={3} className={classes.card} component={DraggableComponent(token.name, rank)}>
-      <Avatar className={classes.avatar}>{token.name[0]}</Avatar>
+    <ListItem selected={isCurrentToken} className={classes.card} component={DraggableComponent(token.name, rank)}>
+      {token.character?.avatar ? (
+        <Avatar className={classes.avatar} src={token.character.avatar} />
+      ) : (
+        <Avatar className={classes.avatar}>{token.name[0]}</Avatar>
+      )}
       <Box>
         <Typography variant="h6" className={classes.heading}>{token.name}</Typography>
         <p className={classes.subheader}>
@@ -134,7 +136,7 @@ const CombatCard = observer<PropsType>(({ store, rank, token, isCurrentToken }) 
 
       <Box className={classes.footer}>
         {!isCurrentToken && (
-        <IconButton onClick={onMenuClick}><MoreVertIcon fontSize="inherit" /></IconButton>
+        <IconButton onClick={onMenuClick}><MoreVertIcon fontSize="small" /></IconButton>
         )}
         <Menu
           anchorReference="anchorPosition"
@@ -158,7 +160,8 @@ const CombatCard = observer<PropsType>(({ store, rank, token, isCurrentToken }) 
           </MenuItem>
         </Menu>
       </Box>
-    </Card>
+      <Divider />
+    </ListItem>
   );
 });
 
