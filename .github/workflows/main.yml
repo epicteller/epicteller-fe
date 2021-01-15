@@ -40,6 +40,7 @@ jobs:
           secret_key: ${{ secrets.COS_SECRET_KEY }}
           bucket: ${{ secrets.COS_BUCKET }}
           region: ap-beijing
+          endpoint: cos.accelerate.myqcloud.com
 
       - name: Refresh CDN Cache
         uses: TencentCloud/cli-action@v1
