@@ -15,6 +15,7 @@ const useStyles = makeStyles((theme) => ({
   },
   container: {
     paddingTop: 'env(safe-area-inset-top)',
+    paddingBottom: theme.spacing(2),
   },
 }));
 

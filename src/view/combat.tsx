@@ -1,10 +1,12 @@
 import { Box, Button, Divider, makeStyles, Paper, Step, StepLabel, Stepper, Typography } from '@material-ui/core';
 import camelcaseKeys from 'camelcase-keys';
+import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import CombatList from '../component/Combat/CombatList';
+import PingBox from '../component/PingBox';
 import { REACT_APP_WS_BASE_URL } from '../config';
 import { StoreContext } from '../store';
 import { Combat, CombatMsg, CombatState, WebSocketMsg } from '../store/combat';
@@ -21,8 +23,11 @@ const useStyles = makeStyles((theme) => ({
   },
   footer: {
     display: 'flex',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     padding: theme.spacing(2, 2),
+  },
+  footerToolBtns: {
+    justifyContent: 'flex-end',
   },
   btn: {
     marginLeft: theme.spacing(1),
@@ -58,27 +63,44 @@ const CombatView = observer(() => {
 
   useEffect(() => {
     let timer: any = null;
+    let lastPing: number = 0;
     const wsClient = new ReconnectingWebSocket(`${REACT_APP_WS_BASE_URL}/combats/${combatId}`);
+
+    const sendPing = () => {
+      lastPing = Date.now();
+      wsClient.send(JSON.stringify({ type: 'ping' }));
+    };
+
     wsClient.addEventListener('open', () => {
       setWs(wsClient);
+      sendPing();
       timer = setInterval(() => {
-        wsClient.send(JSON.stringify({ type: 'ping' }));
+        sendPing();
       }, 10000);
     });
     wsClient.addEventListener('message', (e) => {
       const data: WebSocketMsg = camelcaseKeys(JSON.parse(e.data), { deep: true });
       if (data.type === 'pong') {
+        runInAction(() => {
+          combatStore.setWsPing(Date.now() - lastPing);
+        });
         return;
       }
       combatStore.onMessage(data as CombatMsg);
     });
 
     wsClient.addEventListener('error', () => {
+      runInAction(() => {
+        combatStore.setWsPing(null);
+      });
       clearInterval(timer);
     });
 
     wsClient.addEventListener('close', (e) => {
       clearInterval(timer);
+      runInAction(() => {
+        combatStore.setWsPing(null);
+      });
       if (e.code === 1000) {
         wsClient.close(1000);
       } else if (e.code === 1006) {
@@ -122,7 +144,7 @@ const CombatView = observer(() => {
           </StepLabel>
         </Step>
         <Step>
-          <StepLabel optional={combatStore.combat?.state === CombatState.RUNNING && <Typography variant="caption">{`第 ${combatStore.combat?.order.roundCount} 回合`}</Typography>}>
+          <StepLabel optional={getStep(combatStore.combat) > 0 && <Typography variant="caption">{`第 ${combatStore.combat?.order.roundCount} 回合`}</Typography>}>
             行动阶段
           </StepLabel>
         </Step>
@@ -135,18 +157,21 @@ const CombatView = observer(() => {
       <Divider />
       <CombatList store={combatStore} />
       <Box className={classes.footer}>
-        {combat?.state === CombatState.INITIATING && (
+        <PingBox ping={combatStore.wsPing} />
+        <Box className={classes.footerToolBtns}>
+          {combat?.state === CombatState.INITIATING && (
           <Button variant="contained" color="secondary" onClick={runCombat}>进入行动阶段</Button>
-        )}
-        {combat?.state === CombatState.RUNNING && (
+          )}
+          {combat?.state === CombatState.RUNNING && (
           <Box>
             <Button className={classes.btn} variant="contained" color="secondary" onClick={nextToken}>下一行动轮</Button>
             <Button className={classes.btn} variant="contained" color="secondary" onClick={endCombat}>战斗结束</Button>
           </Box>
-        )}
-        {combat?.state === CombatState.ENDED && (
+          )}
+          {combat?.state === CombatState.ENDED && (
           <Typography variant="caption">战斗已结束</Typography>
-        )}
+          )}
+        </Box>
       </Box>
     </Paper>
   );

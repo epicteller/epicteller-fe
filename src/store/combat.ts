@@ -58,6 +58,8 @@ export class CombatStore {
 
   loading = true;
 
+  wsPing: number | null = null;
+
   constructor() {
     makeAutoObservable(this);
   }
@@ -219,6 +221,14 @@ export class CombatStore {
       throw e;
     });
     return response.data as Combat;
+  }
+
+  setWsPing(ping: number | null) {
+    if (!ping) {
+      this.wsPing = ping;
+      return;
+    }
+    this.wsPing = Math.ceil(ping / 2);
   }
 }
 
