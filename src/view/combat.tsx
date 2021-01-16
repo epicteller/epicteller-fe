@@ -3,9 +3,11 @@ import camelcaseKeys from 'camelcase-keys';
 import { observer } from 'mobx-react-lite';
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import ReconnectingWebSocket from 'reconnecting-websocket';
 import CombatList from '../component/Combat/CombatList';
+import { REACT_APP_WS_BASE_URL } from '../config';
 import { StoreContext } from '../store';
-import { Combat, CombatMsg, CombatState } from '../store/combat';
+import { Combat, CombatMsg, CombatState, WebSocketMsg } from '../store/combat';
 
 interface ParamTypes {
   combatId: string
@@ -48,22 +50,45 @@ const CombatView = observer(() => {
   const { combatId } = useParams<ParamTypes>();
   const { combatStore } = useContext(StoreContext);
   const { combat } = combatStore;
-  const [, setWs] = useState<WebSocket | null>(null);
   useEffect(() => {
     combatStore.fetchCombatIfNeed(combatId);
   }, []);
+
+  const [, setWs] = useState<ReconnectingWebSocket | null>(null);
+
   useEffect(() => {
-    const wsClient = new WebSocket(`wss://api.epicteller.com/combats/${combatId}`);
-    wsClient.onopen = (() => {
+    let timer: any = null;
+    const wsClient = new ReconnectingWebSocket(`${REACT_APP_WS_BASE_URL}/combats/${combatId}`);
+    wsClient.addEventListener('open', () => {
       setWs(wsClient);
+      timer = setInterval(() => {
+        wsClient.send(JSON.stringify({ type: 'ping' }));
+      }, 10000);
     });
-    wsClient.onmessage = ((e: MessageEvent) => {
-      const data = JSON.parse(e.data);
-      const message: CombatMsg = camelcaseKeys(data, { deep: true });
-      combatStore.onMessage(message);
+    wsClient.addEventListener('message', (e) => {
+      const data: WebSocketMsg = camelcaseKeys(JSON.parse(e.data), { deep: true });
+      if (data.type === 'pong') {
+        return;
+      }
+      combatStore.onMessage(data as CombatMsg);
     });
+
+    wsClient.addEventListener('error', () => {
+      clearInterval(timer);
+    });
+
+    wsClient.addEventListener('close', (e) => {
+      clearInterval(timer);
+      if (e.code === 1000) {
+        wsClient.close(1000);
+      } else if (e.code === 1006) {
+        wsClient.reconnect();
+      }
+    });
+
     return () => {
-      wsClient.close();
+      clearInterval(timer);
+      wsClient.close(1000);
     };
   }, []);
 

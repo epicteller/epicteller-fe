@@ -39,7 +39,11 @@ export interface Combat {
   updated: number
 }
 
-export interface CombatMsg {
+export interface WebSocketMsg {
+  type?: string
+}
+
+export interface CombatMsg extends WebSocketMsg {
   action: object
   combat: Combat
 }
@@ -127,6 +131,9 @@ export class CombatStore {
   }
 
   async onMessage(msg: CombatMsg) {
+    if (msg.type === 'pong') {
+      return;
+    }
     this.combat = msg.combat;
   }
 
