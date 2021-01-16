@@ -35,7 +35,7 @@ jobs:
       - name: Upload COS
         uses: KawashiroNitori/tencent-cos-action@endpoint-support
         with:
-          args: upload -rs --delete ./build/ /
+          args: upload -rsf --delete ./build/ /
           secret_id: ${{ secrets.COS_SECRET_ID }}
           secret_key: ${{ secrets.COS_SECRET_KEY }}
           bucket: ${{ secrets.COS_BUCKET }}
