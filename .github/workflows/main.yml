@@ -39,7 +39,6 @@ jobs:
           secret_id: ${{ secrets.COS_SECRET_ID }}
           secret_key: ${{ secrets.COS_SECRET_KEY }}
           bucket: ${{ secrets.COS_BUCKET }}
-          region: ap-beijing
           endpoint: cos.accelerate.myqcloud.com
 
       - name: Delete outdated files
