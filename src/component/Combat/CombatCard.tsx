@@ -20,7 +20,7 @@ const useStyles = makeStyles(({ spacing, palette }) => {
   return {
     card: {
       display: 'flex',
-      padding: spacing(2),
+      padding: spacing(1, 2),
       minWidth: 288,
       '& > *:nth-child(1)': {
         marginRight: spacing(2),
@@ -120,13 +120,9 @@ const CombatCard = observer<PropsType>(({ store, rank, token, isCurrentToken }) 
 
   return (
     <ListItem selected={isCurrentToken} className={classes.card} component={DraggableComponent(token.name, rank)}>
-      {token.character?.avatar ? (
-        <Avatar className={classes.avatar} src={token.character.avatar} />
-      ) : (
-        <Avatar className={classes.avatar}>{token.name[0]}</Avatar>
-      )}
+      <Avatar className={classes.avatar} src={token.character?.avatar}>{token.name[0]}</Avatar>
       <Box>
-        <Typography variant="h6" className={classes.heading}>{token.name}</Typography>
+        <Typography variant="subtitle1" className={classes.heading}>{token.name}</Typography>
         <p className={classes.subheader}>
           先攻值:
           {' '}

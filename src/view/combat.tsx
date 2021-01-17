@@ -168,9 +168,6 @@ const CombatView = observer(() => {
             <Button className={classes.btn} variant="contained" color="secondary" onClick={endCombat}>战斗结束</Button>
           </Box>
           )}
-          {combat?.state === CombatState.ENDED && (
-          <Typography variant="caption">战斗已结束</Typography>
-          )}
         </Box>
       </Box>
     </Paper>
