@@ -28,7 +28,7 @@ interface PropTypes {
 export const PingBox = ({ ping }: PropTypes) => {
   const classes = useStyles();
 
-  if (ping) {
+  if (ping !== null) {
     return (
       <Box className={classes.box}>
         <WifiIcon className={classes.success} fontSize="small" />

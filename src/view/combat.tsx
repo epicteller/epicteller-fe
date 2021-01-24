@@ -1,4 +1,4 @@
-import { Box, Button, Divider, makeStyles, Paper, Step, StepLabel, Stepper, Typography } from '@material-ui/core';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, makeStyles, Paper, Step, StepLabel, Stepper, Typography } from '@material-ui/core';
 import camelcaseKeys from 'camelcase-keys';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
@@ -55,6 +55,7 @@ const CombatView = observer(() => {
   const { combatId } = useParams<ParamTypes>();
   const { combatStore } = useContext(StoreContext);
   const { combat } = combatStore;
+  const [dialogOpen, setDialogOpen] = useState(false);
   useEffect(() => {
     combatStore.fetchCombatIfNeed(combatId);
   }, []);
@@ -126,6 +127,7 @@ const CombatView = observer(() => {
       return;
     }
     combatStore.endCombat();
+    setDialogOpen(false);
   };
 
   const nextToken = () => {
@@ -133,6 +135,14 @@ const CombatView = observer(() => {
       return;
     }
     combatStore.nextToken();
+  };
+
+  const handleOpen = () => {
+    setDialogOpen(true);
+  };
+
+  const handleClose = () => {
+    setDialogOpen(false);
   };
 
   return (
@@ -164,8 +174,20 @@ const CombatView = observer(() => {
           )}
           {combat?.state === CombatState.RUNNING && (
           <Box>
-            <Button className={classes.btn} variant="contained" color="secondary" onClick={nextToken}>下一行动轮</Button>
-            <Button className={classes.btn} variant="contained" color="secondary" onClick={endCombat}>战斗结束</Button>
+            <Button className={classes.btn} variant="contained" color="primary" onClick={nextToken}>下一行动轮</Button>
+            <Button className={classes.btn} variant="contained" color="secondary" onClick={handleOpen}>结束战斗</Button>
+            <Dialog open={dialogOpen} onClose={handleClose}>
+              <DialogTitle>结束战斗</DialogTitle>
+              <DialogContent>
+                <DialogContentText>
+                  该操作无法撤销，是否确定要结束战斗？
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={endCombat} color="secondary">结束战斗</Button>
+                <Button onClick={handleClose} color="primary">取消</Button>
+              </DialogActions>
+            </Dialog>
           </Box>
           )}
         </Box>
