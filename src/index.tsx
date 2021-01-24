@@ -1,8 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
+import TagManager, { TagManagerArgs } from 'react-gtm-module';
 import reportWebVitals from './reportWebVitals';
 import Root from './Root';
+
+const tagManagerArgs: TagManagerArgs = {
+  gtmId: 'GTM-WZXX5R3',
+};
+
+TagManager.initialize(tagManagerArgs);
 
 ReactDOM.render(<Root />, document.getElementById('root'));
 
