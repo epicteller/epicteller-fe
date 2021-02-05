@@ -1,4 +1,4 @@
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, makeStyles, Paper, Step, StepLabel, Stepper, Typography } from '@material-ui/core';
+import { Box, Button, Container, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, makeStyles, Paper, Step, StepLabel, Stepper, Typography } from '@material-ui/core';
 import camelcaseKeys from 'camelcase-keys';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
@@ -6,6 +6,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import CombatList from '../component/Combat/CombatList';
+import NavBar from '../component/NavBar';
 import PingBox from '../component/PingBox';
 import { REACT_APP_WS_BASE_URL } from '../config';
 import { StoreContext } from '../store';
@@ -17,6 +18,10 @@ interface ParamTypes {
 
 const useStyles = makeStyles((theme) => ({
   container: {
+    paddingTop: 'env(safe-area-inset-top)',
+    paddingBottom: theme.spacing(2),
+  },
+  pageContainer: {
     marginBlockStart: theme.spacing(4),
   },
   stepper: {
@@ -146,53 +151,57 @@ const CombatView = observer(() => {
   };
 
   return (
-    <Paper className={classes.container}>
-      <Stepper activeStep={getStep(combatStore.combat)} className={classes.stepper}>
-        <Step>
-          <StepLabel optional={combatStore.combat?.state === CombatState.INITIATING && <Typography variant="caption">决定行动顺序</Typography>}>
-            先攻阶段
-          </StepLabel>
-        </Step>
-        <Step>
-          <StepLabel optional={getStep(combatStore.combat) > 0 && <Typography variant="caption">{`第 ${combatStore.combat?.order.roundCount} 回合`}</Typography>}>
-            行动阶段
-          </StepLabel>
-        </Step>
-        <Step>
-          <StepLabel optional={combatStore.combat?.state === CombatState.ENDED && <Typography variant="caption">胜利了吗？</Typography>}>
-            战斗结束
-          </StepLabel>
-        </Step>
-      </Stepper>
-      <Divider />
-      <CombatList store={combatStore} />
-      <Box className={classes.footer}>
-        <PingBox ping={combatStore.wsPing} />
-        <Box className={classes.footerToolBtns}>
-          {combat?.state === CombatState.INITIATING && (
-          <Button variant="contained" color="secondary" onClick={runCombat}>进入行动阶段</Button>
-          )}
-          {combat?.state === CombatState.RUNNING && (
-          <Box>
-            <Button className={classes.btn} variant="contained" color="primary" onClick={nextToken}>下一行动轮</Button>
-            <Button className={classes.btn} variant="contained" color="secondary" onClick={handleOpen}>结束战斗</Button>
-            <Dialog open={dialogOpen} onClose={handleClose}>
-              <DialogTitle>结束战斗</DialogTitle>
-              <DialogContent>
-                <DialogContentText>
-                  该操作无法撤销，是否确定要结束战斗？
-                </DialogContentText>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={endCombat} color="secondary">结束战斗</Button>
-                <Button onClick={handleClose} color="primary">取消</Button>
-              </DialogActions>
-            </Dialog>
+    <Container className={classes.container} maxWidth="sm">
+      <NavBar title="战斗状态" />
+      <Paper className={classes.pageContainer}>
+        <Stepper activeStep={getStep(combatStore.combat)} className={classes.stepper}>
+          <Step>
+            <StepLabel optional={combatStore.combat?.state === CombatState.INITIATING && <Typography variant="caption">决定行动顺序</Typography>}>
+              先攻阶段
+            </StepLabel>
+          </Step>
+          <Step>
+            <StepLabel optional={getStep(combatStore.combat) > 0 && <Typography variant="caption">{`第 ${combatStore.combat?.order.roundCount} 回合`}</Typography>}>
+              行动阶段
+            </StepLabel>
+          </Step>
+          <Step>
+            <StepLabel optional={combatStore.combat?.state === CombatState.ENDED && <Typography variant="caption">胜利了吗？</Typography>}>
+              战斗结束
+            </StepLabel>
+          </Step>
+        </Stepper>
+        <Divider />
+        <CombatList store={combatStore} />
+        <Box className={classes.footer}>
+          <PingBox ping={combatStore.wsPing} />
+          <Box className={classes.footerToolBtns}>
+            {combat?.state === CombatState.INITIATING && (
+            <Button variant="contained" color="secondary" onClick={runCombat}>进入行动阶段</Button>
+            )}
+            {combat?.state === CombatState.RUNNING && (
+            <Box>
+              <Button className={classes.btn} variant="contained" color="primary" onClick={nextToken}>下一行动轮</Button>
+              <Button className={classes.btn} variant="contained" color="secondary" onClick={handleOpen}>结束战斗</Button>
+              <Dialog open={dialogOpen} onClose={handleClose}>
+                <DialogTitle>结束战斗</DialogTitle>
+                <DialogContent>
+                  <DialogContentText>
+                    该操作无法撤销，是否确定要结束战斗？
+                  </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={endCombat} color="secondary">结束战斗</Button>
+                  <Button onClick={handleClose} color="primary">取消</Button>
+                </DialogActions>
+              </Dialog>
+            </Box>
+            )}
           </Box>
-          )}
         </Box>
-      </Box>
-    </Paper>
+      </Paper>
+    </Container>
+
   );
 });
 
