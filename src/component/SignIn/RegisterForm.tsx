@@ -3,11 +3,22 @@ import Alert from '@material-ui/lab/Alert';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import MailOutlineIcon from '@material-ui/icons/MailOutline';
 import { AxiosError } from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import epAPI from '../../api';
+import { StoreContext } from '../../store';
 
 interface RegisterInfo {
   email: string
+}
+
+interface ValidationError {
+  loc: (string | number)[]
+  type: string
+  message: string
+}
+
+interface ValidationErrorResponse {
+  detail: ValidationError[]
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -21,6 +32,7 @@ const RegisterForm = () => {
 
   const classes = useStyles();
 
+  const { globalNotification } = useContext(StoreContext);
   const [token, setToken] = useState(urlParams.get('token'));
   const [isTokenError, setTokenError] = useState(false);
   const [isSubmiting, setIsSubmiting] = useState(false);
@@ -29,7 +41,7 @@ const RegisterForm = () => {
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [validationError, setValidationError] = useState<ValidationErrorResponse | null>(null);
 
   useEffect(() => {
     if (!token) {
@@ -59,9 +71,11 @@ const RegisterForm = () => {
     } catch (e) {
       const err = e as AxiosError;
       if (err.response?.status! >= 500) {
-        setErrorMessage('出错了，请稍后再试');
+        globalNotification.enqueueSnackbar('出错了，请稍后再试');
+      } else if (err.response?.data.name === 'ValidationError') {
+        setValidationError(err.response.data);
       } else {
-        setErrorMessage(err.response?.data?.detail?.message);
+        globalNotification.enqueueSnackbar(err.response?.data?.message);
       }
     }
     setIsSubmiting(false);
@@ -74,16 +88,31 @@ const RegisterForm = () => {
     setIsSubmiting(true);
     try {
       await epAPI.post('/auth/register', {
-        
+        validateToken: token,
+        password,
+        name,
       });
     } catch (e) {
       const err = e as AxiosError;
       if (err.response?.status! >= 500) {
-        setErrorMessage('出错了，请稍后再试');
+        globalNotification.enqueueSnackbar('出错了，请稍后再试');
+      } else if (err.response?.data.name === 'ValidationError') {
+        setValidationError(err.response.data);
       } else {
-        setErrorMessage(err.response?.data?.detail?.message);
+        globalNotification.enqueueSnackbar(err.response?.data?.message);
       }
     }
+  };
+
+  const getError = (label: string): ValidationError | null => {
+    if (!validationError) {
+      return null;
+    }
+    const [err] = validationError.detail.filter((e) => e.loc[0] === label);
+    if (!err) {
+      return null;
+    }
+    return err;
   };
 
   return (
@@ -101,6 +130,8 @@ const RegisterForm = () => {
             onChange={(e) => setEmail(e.target.value)}
             disabled={lockEmail}
             label="邮箱地址"
+            error={!!getError('email')}
+            helperText={getError('email')?.message}
             InputProps={{
               type: 'email',
               startAdornment: (
@@ -130,6 +161,8 @@ const RegisterForm = () => {
             onChange={(e) => setEmail(e.target.value)}
             disabled={lockEmail}
             label="邮箱地址"
+            error={!!getError('email')}
+            helperText={getError('email')?.message}
             InputProps={{
               type: 'email',
               startAdornment: (
@@ -144,9 +177,11 @@ const RegisterForm = () => {
             required
             fullWidth
             value={name}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => setName(e.target.value)}
             label="用户名"
             placeholder="其他人对你的称呼"
+            error={!!getError('name')}
+            helperText={getError('name')?.message}
           />
           <TextField
             variant="outlined"
@@ -155,6 +190,8 @@ const RegisterForm = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             label="密码"
+            error={!!getError('password')}
+            helperText={getError('password')?.message}
             InputProps={{
               type: 'password',
               startAdornment: (

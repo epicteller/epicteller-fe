@@ -37,7 +37,7 @@ const SignInForm = () => {
       if (err.response?.status! >= 500) {
         setErrorMessage('出错了，请稍后再试');
       } else {
-        setErrorMessage(err.response?.data?.detail?.message);
+        setErrorMessage(err.response?.data?.message);
       }
     }
     await me.refreshMe();
