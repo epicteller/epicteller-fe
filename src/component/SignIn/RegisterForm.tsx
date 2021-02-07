@@ -1,7 +1,9 @@
-import { Button, InputAdornment, makeStyles, TextField } from '@material-ui/core';
+import { Button, CircularProgress, Grid, InputAdornment, Link, makeStyles, TextField } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import MailOutlineIcon from '@material-ui/icons/MailOutline';
+import PersonOutlineIcon from '@material-ui/icons/PersonOutline';
+import { Link as RouterLink } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import React, { useContext, useEffect, useState } from 'react';
 import epAPI from '../../api';
@@ -22,6 +24,9 @@ interface ValidationErrorResponse {
 }
 
 const useStyles = makeStyles((theme) => ({
+  form: {
+    width: 'auto',
+  },
   submit: {
     margin: theme.spacing(3, 0, 2),
   },
@@ -36,8 +41,10 @@ const RegisterForm = () => {
   const [token, setToken] = useState(urlParams.get('token'));
   const [isTokenError, setTokenError] = useState(false);
   const [isSubmiting, setIsSubmiting] = useState(false);
+  const [isValidatingToken, setIsValidatingToken] = useState(false);
   const [lockEmail, setLockEmail] = useState(false);
   const [email, setEmail] = useState('');
+  const [repeatEmail, setRepeatEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
@@ -48,6 +55,7 @@ const RegisterForm = () => {
       return;
     }
     setLockEmail(true);
+    setIsValidatingToken(true);
     const fetchRegisterInfo = async () => {
       try {
         const response = await epAPI.get(`/auth/register?token=${token}`);
@@ -56,12 +64,18 @@ const RegisterForm = () => {
         setTokenError(true);
         setLockEmail(false);
         setToken(null);
+      } finally {
+        setIsValidatingToken(false);
       }
     };
     fetchRegisterInfo();
   }, []);
 
-  const onValidateEmailSubmit = async () => {
+  const onValidateEmailSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (email !== repeatEmail) {
+      return;
+    }
     if (isSubmiting) {
       return;
     }
@@ -70,18 +84,22 @@ const RegisterForm = () => {
       await epAPI.post('/auth/validate/register', { email });
     } catch (e) {
       const err = e as AxiosError;
-      if (err.response?.status! >= 500) {
-        globalNotification.enqueueSnackbar('出错了，请稍后再试');
-      } else if (err.response?.data.name === 'ValidationError') {
+      if (err.response?.data.name === 'ValidationError') {
         setValidationError(err.response.data);
+      } else if (err.response?.status! < 500) {
+        globalNotification.error(err.response?.data?.message);
       } else {
-        globalNotification.enqueueSnackbar(err.response?.data?.message);
+        globalNotification.error('出错了，请稍后再试');
       }
     }
     setIsSubmiting(false);
   };
 
-  const onRegister = async () => {
+  const onRegister = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (password !== repeatPassword) {
+      return;
+    }
     if (isSubmiting) {
       return;
     }
@@ -94,12 +112,12 @@ const RegisterForm = () => {
       });
     } catch (e) {
       const err = e as AxiosError;
-      if (err.response?.status! >= 500) {
-        globalNotification.enqueueSnackbar('出错了，请稍后再试');
-      } else if (err.response?.data.name === 'ValidationError') {
+      if (err.response?.data.name === 'ValidationError') {
         setValidationError(err.response.data);
+      } else if (err.response?.status! < 500) {
+        globalNotification.error(err.response?.data?.message);
       } else {
-        globalNotification.enqueueSnackbar(err.response?.data?.message);
+        globalNotification.error('出错了，请稍后再试');
       }
     }
   };
@@ -116,14 +134,15 @@ const RegisterForm = () => {
   };
 
   return (
-    <>
+    <div className={classes.form}>
       {isTokenError && (
         <Alert onClose={() => setTokenError(false)} severity="error">邮箱验证链接已失效，请重试。</Alert>
       )}
       {!token ? (
-        <form onSubmit={onValidateEmailSubmit}>
+        <form onSubmit={onValidateEmailSubmit} className={classes.form}>
           <TextField
             variant="outlined"
+            margin="normal"
             required
             fullWidth
             value={email}
@@ -132,6 +151,26 @@ const RegisterForm = () => {
             label="邮箱地址"
             error={!!getError('email')}
             helperText={getError('email')?.message}
+            InputProps={{
+              type: 'email',
+              startAdornment: (
+                <InputAdornment position="start">
+                  <MailOutlineIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
+          <TextField
+            variant="outlined"
+            margin="normal"
+            required
+            fullWidth
+            value={repeatEmail}
+            onChange={(e) => setRepeatEmail(e.target.value)}
+            disabled={lockEmail}
+            label="确认邮箱地址"
+            error={!!repeatEmail && email !== repeatEmail}
+            helperText={!!repeatEmail && email !== repeatEmail && '两次邮箱输入不一致'}
             InputProps={{
               type: 'email',
               startAdornment: (
@@ -150,11 +189,17 @@ const RegisterForm = () => {
           >
             发送验证邮件
           </Button>
+          <Grid container justify="space-between" direction="row-reverse">
+            <Grid item>
+              <Link color="textSecondary" component={RouterLink} to="/" variant="body2">已有帐号？返回登录</Link>
+            </Grid>
+          </Grid>
         </form>
       ) : (
-        <form onSubmit={onRegister}>
+        <form onSubmit={onRegister} className={classes.form}>
           <TextField
             variant="outlined"
+            margin="normal"
             required
             fullWidth
             value={email}
@@ -170,10 +215,22 @@ const RegisterForm = () => {
                   <MailOutlineIcon />
                 </InputAdornment>
               ),
+              endAdornment: (
+                <>
+                  {
+                isValidatingToken && (
+                  <InputAdornment position="end">
+                    <CircularProgress color="inherit" size="1.2rem" thickness={5} />
+                  </InputAdornment>
+                )
+              }
+                </>
+              ),
             }}
           />
           <TextField
             variant="outlined"
+            margin="normal"
             required
             fullWidth
             value={name}
@@ -182,9 +239,17 @@ const RegisterForm = () => {
             placeholder="其他人对你的称呼"
             error={!!getError('name')}
             helperText={getError('name')?.message}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <PersonOutlineIcon />
+                </InputAdornment>
+              ),
+            }}
           />
           <TextField
             variant="outlined"
+            margin="normal"
             required
             fullWidth
             value={password}
@@ -203,6 +268,7 @@ const RegisterForm = () => {
           />
           <TextField
             variant="outlined"
+            margin="normal"
             required
             fullWidth
             error={!!repeatPassword && password !== repeatPassword}
@@ -230,7 +296,7 @@ const RegisterForm = () => {
           </Button>
         </form>
       )}
-    </>
+    </div>
   );
 };
 

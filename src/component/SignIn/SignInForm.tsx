@@ -9,6 +9,9 @@ import epAPI from '../../api';
 import { StoreContext } from '../../store';
 
 const useStyles = makeStyles((theme) => ({
+  form: {
+    width: '100%',
+  },
   submit: {
     margin: theme.spacing(3, 0, 2),
   },
@@ -22,7 +25,8 @@ const SignInForm = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmiting, setIsSubmiting] = useState(false);
 
-  const onSubmit = async () => {
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (isSubmiting) {
       return;
     }
@@ -34,10 +38,10 @@ const SignInForm = () => {
       });
     } catch (e) {
       const err = e as AxiosError;
-      if (err.response?.status! >= 500) {
-        setErrorMessage('出错了，请稍后再试');
-      } else {
+      if (err.response?.status! < 500) {
         setErrorMessage(err.response?.data?.message);
+      } else {
+        setErrorMessage('出错了，请稍后再试');
       }
     }
     await me.refreshMe();
@@ -45,11 +49,13 @@ const SignInForm = () => {
   };
 
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={onSubmit} className={classes.form}>
       <TextField
         variant="outlined"
+        margin="normal"
         required
         fullWidth
+        label="邮箱地址"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         error={!!errorMessage}
@@ -64,8 +70,10 @@ const SignInForm = () => {
       />
       <TextField
         variant="outlined"
+        margin="normal"
         required
         fullWidth
+        label="密码"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         error={!!errorMessage}
@@ -88,12 +96,12 @@ const SignInForm = () => {
       >
         登录
       </Button>
-      <Grid container>
-        <Grid item xs>
-          <Link component={RouterLink} to="/reset-password" variant="body2">忘记密码</Link>
+      <Grid container justify="space-between">
+        <Grid item>
+          <Link color="textSecondary" component={RouterLink} to="/reset-password" variant="body2">忘记密码？</Link>
         </Grid>
-        <Grid item xs>
-          <Link component={RouterLink} to="/register" variant="body2">注册帐号</Link>
+        <Grid item>
+          <Link color="textSecondary" component={RouterLink} to="/register" variant="body2">注册帐号</Link>
         </Grid>
       </Grid>
     </form>
