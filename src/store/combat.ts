@@ -232,4 +232,4 @@ export class CombatStore {
   }
 }
 
-export const combatStore = new CombatStore();
+export const combat = new CombatStore();

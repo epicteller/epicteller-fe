@@ -58,7 +58,7 @@ const getStep = ((combat?: Combat): number => {
 const CombatView = observer(() => {
   const classes = useStyles();
   const { combatId } = useParams<ParamTypes>();
-  const { combatStore } = useContext(StoreContext);
+  const { combat: combatStore } = useContext(StoreContext);
   const { combat } = combatStore;
   const [dialogOpen, setDialogOpen] = useState(false);
   useEffect(() => {
@@ -154,19 +154,19 @@ const CombatView = observer(() => {
     <Container className={classes.container} maxWidth="sm">
       <NavBar title="战斗状态" />
       <Paper className={classes.pageContainer}>
-        <Stepper activeStep={getStep(combatStore.combat)} className={classes.stepper}>
+        <Stepper activeStep={getStep(combat)} className={classes.stepper}>
           <Step>
-            <StepLabel optional={combatStore.combat?.state === CombatState.INITIATING && <Typography variant="caption">决定行动顺序</Typography>}>
+            <StepLabel optional={combat?.state === CombatState.INITIATING && <Typography variant="caption">决定行动顺序</Typography>}>
               先攻阶段
             </StepLabel>
           </Step>
           <Step>
-            <StepLabel optional={getStep(combatStore.combat) > 0 && <Typography variant="caption">{`第 ${combatStore.combat?.order.roundCount} 回合`}</Typography>}>
+            <StepLabel optional={getStep(combat) > 0 && <Typography variant="caption">{`第 ${combat?.order.roundCount} 回合`}</Typography>}>
               行动阶段
             </StepLabel>
           </Step>
           <Step>
-            <StepLabel optional={combatStore.combat?.state === CombatState.ENDED && <Typography variant="caption">胜利了吗？</Typography>}>
+            <StepLabel optional={combat?.state === CombatState.ENDED && <Typography variant="caption">胜利了吗？</Typography>}>
               战斗结束
             </StepLabel>
           </Step>

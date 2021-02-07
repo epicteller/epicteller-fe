@@ -21,4 +21,4 @@ export class GlobalNotificationStore {
   }
 }
 
-export const globalNotificationStore = new GlobalNotificationStore();
+export const globalNotification = new GlobalNotificationStore();

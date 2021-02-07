@@ -1,10 +1,12 @@
 import React, { createContext, FunctionComponent } from 'react';
-import { combatStore } from './combat';
-import { globalNotificationStore } from './globalNotification';
+import { combat } from './combat';
+import { me } from './me';
+import { globalNotification } from './globalNotification';
 
 export const stores = {
-  globalNotificationStore,
-  combatStore,
+  globalNotification,
+  combat,
+  me,
 };
 
 export const StoreContext = createContext(stores);
