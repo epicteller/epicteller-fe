@@ -10,7 +10,7 @@ const ThemeProvider: React.FunctionComponent = ({ children }: ProviderProps) => 
   const theme = useMemo(
     () => createMuiTheme({
       palette: {
-        type: prefersDarkMode ? 'light' : 'light',
+        type: prefersDarkMode ? 'dark' : 'dark',
       },
     }),
     [prefersDarkMode],

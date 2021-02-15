@@ -25,11 +25,11 @@ export class GlobalNotificationStore {
   }
 
   success(message: SnackbarMessage): SnackbarKey {
-    return this.enqueueSnackbar(message, { variant: 'success' });
+    return this.enqueueSnackbar(message, { variant: 'success', autoHideDuration: 3000 });
   }
 
   error(message: SnackbarMessage): SnackbarKey {
-    return this.enqueueSnackbar(message, { variant: 'error' });
+    return this.enqueueSnackbar(message, { variant: 'error', autoHideDuration: 10000 });
   }
 
   warn(message: SnackbarMessage): SnackbarKey {

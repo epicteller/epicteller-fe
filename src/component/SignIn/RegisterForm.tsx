@@ -1,11 +1,12 @@
-import { Button, CircularProgress, Grid, InputAdornment, Link, makeStyles, TextField } from '@material-ui/core';
+import { Button, CircularProgress, Grid, Grow, InputAdornment, Link, makeStyles, TextField, Typography } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import MailOutlineIcon from '@material-ui/icons/MailOutline';
 import PersonOutlineIcon from '@material-ui/icons/PersonOutline';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useHistory } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import React, { useContext, useEffect, useState } from 'react';
+import { useSearchParam } from 'react-use';
 import epAPI from '../../api';
 import { StoreContext } from '../../store';
 
@@ -16,7 +17,7 @@ interface RegisterInfo {
 interface ValidationError {
   loc: (string | number)[]
   type: string
-  message: string
+  msg: string
 }
 
 interface ValidationErrorResponse {
@@ -30,19 +31,22 @@ const useStyles = makeStyles((theme) => ({
   submit: {
     margin: theme.spacing(3, 0, 2),
   },
+  successView: {
+    textShadow: '0px 0px 5px black',
+  },
 }));
 
 const RegisterForm = () => {
-  const urlParams = new URLSearchParams(window.location.search);
-
   const classes = useStyles();
+  const history = useHistory();
 
   const { globalNotification } = useContext(StoreContext);
-  const [token, setToken] = useState(urlParams.get('token'));
+  const [token, setToken] = useState(useSearchParam('token'));
   const [isTokenError, setTokenError] = useState(false);
   const [isSubmiting, setIsSubmiting] = useState(false);
   const [isValidatingToken, setIsValidatingToken] = useState(false);
   const [lockEmail, setLockEmail] = useState(false);
+  const [sendEmailSuccess, setSendEmailSuccess] = useState(false);
   const [email, setEmail] = useState('');
   const [repeatEmail, setRepeatEmail] = useState('');
   const [name, setName] = useState('');
@@ -58,7 +62,7 @@ const RegisterForm = () => {
     setIsValidatingToken(true);
     const fetchRegisterInfo = async () => {
       try {
-        const response = await epAPI.get(`/auth/register?token=${token}`);
+        const response = await epAPI.get(`/register?token=${token}`);
         setEmail((response.data as RegisterInfo).email);
       } catch (e) {
         setTokenError(true);
@@ -81,7 +85,8 @@ const RegisterForm = () => {
     }
     setIsSubmiting(true);
     try {
-      await epAPI.post('/auth/validate/register', { email });
+      await epAPI.post('/validate/register', { email });
+      setSendEmailSuccess(true);
     } catch (e) {
       const err = e as AxiosError;
       if (err.response?.data.name === 'ValidationError') {
@@ -91,8 +96,9 @@ const RegisterForm = () => {
       } else {
         globalNotification.error('出错了，请稍后再试');
       }
+    } finally {
+      setIsSubmiting(false);
     }
-    setIsSubmiting(false);
   };
 
   const onRegister = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -105,11 +111,12 @@ const RegisterForm = () => {
     }
     setIsSubmiting(true);
     try {
-      await epAPI.post('/auth/register', {
+      await epAPI.post('/register', {
         validateToken: token,
         password,
         name,
       });
+      history.push({ pathname: '/' });
     } catch (e) {
       const err = e as AxiosError;
       if (err.response?.data.name === 'ValidationError') {
@@ -119,6 +126,8 @@ const RegisterForm = () => {
       } else {
         globalNotification.error('出错了，请稍后再试');
       }
+    } finally {
+      setIsSubmiting(false);
     }
   };
 
@@ -126,12 +135,27 @@ const RegisterForm = () => {
     if (!validationError) {
       return null;
     }
-    const [err] = validationError.detail.filter((e) => e.loc[0] === label);
+    const [err] = validationError.detail.filter((e) => e.loc[1] === label);
     if (!err) {
       return null;
     }
     return err;
   };
+
+  if (sendEmailSuccess) {
+    return (
+      <Grow in>
+        <Grid container direction="column" justify="center" alignItems="center">
+          <Grid item>
+            <Typography className={classes.successView} variant="h2">🎉</Typography>
+          </Grid>
+          <Grid item>
+            <Typography className={classes.successView} variant="h6">已发送验证邮件</Typography>
+          </Grid>
+        </Grid>
+      </Grow>
+    );
+  }
 
   return (
     <div className={classes.form}>
@@ -150,7 +174,7 @@ const RegisterForm = () => {
             disabled={lockEmail}
             label="邮箱地址"
             error={!!getError('email')}
-            helperText={getError('email')?.message}
+            helperText={getError('email')?.msg}
             InputProps={{
               type: 'email',
               startAdornment: (
@@ -207,7 +231,7 @@ const RegisterForm = () => {
             disabled={lockEmail}
             label="邮箱地址"
             error={!!getError('email')}
-            helperText={getError('email')?.message}
+            helperText={getError('email')?.msg}
             InputProps={{
               type: 'email',
               startAdornment: (
@@ -218,12 +242,12 @@ const RegisterForm = () => {
               endAdornment: (
                 <>
                   {
-                isValidatingToken && (
-                  <InputAdornment position="end">
-                    <CircularProgress color="inherit" size="1.2rem" thickness={5} />
-                  </InputAdornment>
-                )
-              }
+                    isValidatingToken && (
+                      <InputAdornment position="end">
+                        <CircularProgress color="inherit" size="1.2rem" thickness={5} />
+                      </InputAdornment>
+                    )
+                  }
                 </>
               ),
             }}
@@ -238,7 +262,7 @@ const RegisterForm = () => {
             label="用户名"
             placeholder="其他人对你的称呼"
             error={!!getError('name')}
-            helperText={getError('name')?.message}
+            helperText={getError('name')?.msg}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -256,7 +280,7 @@ const RegisterForm = () => {
             onChange={(e) => setPassword(e.target.value)}
             label="密码"
             error={!!getError('password')}
-            helperText={getError('password')?.message}
+            helperText={getError('password')?.msg}
             InputProps={{
               type: 'password',
               startAdornment: (

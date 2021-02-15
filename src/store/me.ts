@@ -10,24 +10,25 @@ export interface Member {
 }
 
 export interface MemberExternalInfo {
-  QQ?: string
+  qq?: string
 }
 
 export interface Me extends Member {
   email: string
+  avatarOriginal: string
   externalInfo?: MemberExternalInfo
 }
 
 export class MeStore {
   fetched: boolean = false;
 
-  me: Me | null = null;
+  me: Me | null = MeStore.getMeFromLocalStorage();
 
   constructor() {
     makeAutoObservable(this);
   }
 
-  static async getMeFromLocalStorage(): Promise<Me | null> {
+  static getMeFromLocalStorage(): Me | null {
     const meData = localStorage.getItem('me');
     if (!meData) {
       return null;
@@ -53,12 +54,18 @@ export class MeStore {
     localStorage.setItem('me', JSON.stringify(me));
   }
 
+  async clearMe() {
+    this.fetched = true;
+    this.me = null;
+    localStorage.removeItem('me');
+  }
+
   async fetchMeIfNeeded() {
     if (this.fetched) {
       return;
     }
     this.fetched = true;
-    const me = await MeStore.getMeFromLocalStorage();
+    const me = MeStore.getMeFromLocalStorage();
     if (me) {
       runInAction(() => {
         this.me = me;

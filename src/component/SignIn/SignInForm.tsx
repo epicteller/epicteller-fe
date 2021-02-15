@@ -32,7 +32,7 @@ const SignInForm = () => {
     }
     setIsSubmiting(true);
     try {
-      await epAPI.post('/auth/login', {
+      await epAPI.post('/login', {
         email,
         password,
       });
