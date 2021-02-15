@@ -1,38 +1,42 @@
+import { observer } from 'mobx-react-lite';
 import React from 'react';
-import Container from '@material-ui/core/Container';
-import { Box, makeStyles } from '@material-ui/core';
 import { Route, Switch } from 'react-router-dom';
-import NavBar from './component/NavBar';
 import Notifier from './component/Notifier';
+import RequireLoginRoute from './component/RequireLoginRoute';
+import { useMe } from './hook';
 import CombatView from './view/combat';
+import MainView from './view/main';
+import MeSettingsView from './view/MeSettings';
+import SignInView from './view/SignIn';
 
-const useStyles = makeStyles((theme) => ({
-  appBarSpacer: {
-    ...theme.mixins.toolbar,
-    paddingTop: 'env(safe-area-inset-top)',
-    paddingLeft: 'env(safe-area-inset-left)',
-    paddingRight: 'env(safe-area-inset-right)',
-  },
-  container: {
-    paddingTop: 'env(safe-area-inset-top)',
-    paddingBottom: theme.spacing(2),
-  },
-}));
-
-export default function App() {
-  const classes = useStyles();
+const App = observer(() => {
+  const me = useMe();
   return (
-    <Box>
+    <>
       <Notifier />
-      <NavBar />
-      <Container className={classes.container} maxWidth="sm">
-        <div className={classes.appBarSpacer} />
-        <Switch>
-          <Route path="/combat/:combatId">
-            <CombatView />
-          </Route>
-        </Switch>
-      </Container>
-    </Box>
+      <Switch>
+        <Route path="/" exact>
+          {me ? (
+            <MainView />
+          ) : (
+            <SignInView />
+          )}
+        </Route>
+        <Route path="/login" exact>
+          <SignInView />
+        </Route>
+        <Route path="/register" exact>
+          <SignInView />
+        </Route>
+        <Route path="/combat/:combatId" exact>
+          <CombatView />
+        </Route>
+        <RequireLoginRoute path="/settings">
+          <MeSettingsView />
+        </RequireLoginRoute>
+      </Switch>
+    </>
   );
-}
+});
+
+export default App;

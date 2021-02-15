@@ -154,7 +154,7 @@ const CombatList = observer<PropTypes>((props: PropTypes) => {
             </DialogContent>
             <DialogActions>
               <Button onClick={onAddDialogCancel} color="primary">取消</Button>
-              <Button onClick={onAddDialogOK} disabled={!tokenName || isDuplicateToken(tokenName)} color="primary">添加</Button>
+              <Button onClick={onAddDialogOK} disabled={!tokenName || isDuplicateToken(tokenName)} color="primary">追加</Button>
             </DialogActions>
           </Dialog>
         </Box>

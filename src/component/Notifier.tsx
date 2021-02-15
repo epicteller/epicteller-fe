@@ -7,7 +7,7 @@ import { StoreContext } from '../store';
 
 const Notifier = observer(() => {
   const { enqueueSnackbar } = useSnackbar();
-  const { globalNotificationStore } = useContext(StoreContext);
+  const { globalNotification: globalNotificationStore } = useContext(StoreContext);
   let displayed: SnackbarKey[] = [];
 
   const storeDisplayed = (id: SnackbarKey) => {

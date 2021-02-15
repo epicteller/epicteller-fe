@@ -1,4 +1,4 @@
-import { Avatar, Box, Fade, IconButton, makeStyles, Menu, MenuItem, Typography, ListItem, Divider } from '@material-ui/core';
+import { Avatar, Box, Fade, IconButton, makeStyles, Menu, MenuItem, Typography, ListItem } from '@material-ui/core';
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
@@ -119,15 +119,20 @@ const CombatCard = observer<PropsType>(({ store, rank, token, isCurrentToken }) 
   };
 
   return (
-    <ListItem selected={isCurrentToken} className={classes.card} component={DraggableComponent(token.name, rank)}>
+    <ListItem
+      button
+      selected={isCurrentToken}
+      className={classes.card}
+      component={DraggableComponent(token.name, rank)}
+    >
       <Avatar className={classes.avatar} src={token.character?.avatar}>{token.name[0]}</Avatar>
       <Box>
         <Typography variant="subtitle1" className={classes.heading}>{token.name}</Typography>
-        <p className={classes.subheader}>
+        <Typography variant="body2" color="textSecondary" gutterBottom>
           先攻值:
           {' '}
           {token.initiative}
-        </p>
+        </Typography>
       </Box>
 
       <Box className={classes.footer}>
@@ -156,7 +161,6 @@ const CombatCard = observer<PropsType>(({ store, rank, token, isCurrentToken }) 
           </MenuItem>
         </Menu>
       </Box>
-      <Divider />
     </ListItem>
   );
 });

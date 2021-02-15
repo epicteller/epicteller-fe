@@ -19,6 +19,22 @@ export class GlobalNotificationStore {
     this.notifications.push(<Notification>{ key, message, options });
     return key;
   }
+
+  info(message: SnackbarMessage): SnackbarKey {
+    return this.enqueueSnackbar(message, { variant: 'info' });
+  }
+
+  success(message: SnackbarMessage): SnackbarKey {
+    return this.enqueueSnackbar(message, { variant: 'success', autoHideDuration: 3000 });
+  }
+
+  error(message: SnackbarMessage): SnackbarKey {
+    return this.enqueueSnackbar(message, { variant: 'error', autoHideDuration: 10000 });
+  }
+
+  warn(message: SnackbarMessage): SnackbarKey {
+    return this.enqueueSnackbar(message, { variant: 'warning' });
+  }
 }
 
-export const globalNotificationStore = new GlobalNotificationStore();
+export const globalNotification = new GlobalNotificationStore();
