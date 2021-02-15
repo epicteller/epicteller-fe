@@ -1,4 +1,4 @@
-import { Avatar, Button, Card, CardActionArea, CardContent, Chip, Grid, makeStyles, Paper, Tooltip, Typography } from '@material-ui/core';
+import { Avatar, Button, Card, CardActionArea, CardContent, Chip, Grid, Link, makeStyles, Paper, Tooltip, Typography } from '@material-ui/core';
 import { AvatarGroup } from '@material-ui/lab';
 import { AxiosError } from 'axios';
 import React, { useEffect, useState } from 'react';
@@ -11,6 +11,7 @@ import { globalNotification } from '../../store/globalNotification';
 import TimeChip from '../TimeChip';
 import MemberChip from '../Member/MemberChip';
 import CampaignListSkeleton from '../Skeleton/CampaignListSkeleton';
+import { useMe } from '../../hook';
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -34,9 +35,13 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: indigo[300],
     color: theme.palette.getContrastText(indigo[300]),
   },
+  noCampaigns: {
+    marginTop: theme.spacing(4),
+  },
 }));
 
 const MyCampaignsList = () => {
+  const me = useMe();
   const classes = useStyles();
   const history = useHistory();
   const [isLoading, setIsLoading] = useState(true);
@@ -75,7 +80,7 @@ const MyCampaignsList = () => {
 
       </Grid>
       <Grid container spacing={3}>
-        {!isLoading ? campaigns.map((campaign) => (
+        {!isLoading && campaigns && campaigns.map((campaign) => (
           <Grid item xs sm={6} md={3}>
             <Card elevation={3}>
               <CardActionArea component={RouterLink} to={`/campaign/${campaign.id}`}>
@@ -125,11 +130,34 @@ const MyCampaignsList = () => {
               </CardActionArea>
             </Card>
           </Grid>
-        )) : (
+        ))}
+        {!isLoading && campaigns.length === 0 && (
+          <Grid className={classes.noCampaigns} container direction="column" justify="center" alignItems="center">
+            <Grid item>
+              <Typography variant="h2">🤔</Typography>
+            </Grid>
+            <Grid item>
+              <Typography variant="h6">
+                看起来你还没有参与过战役
+                {!me?.externalInfo?.qq && (
+                <>
+                  <Typography variant="inherit">，不如先</Typography>
+                  <Link component={RouterLink} to="/settings/external">
+                    去绑定
+                  </Link>
+                  <Typography variant="inherit">
+                    一下外部帐号？
+                  </Typography>
+                </>
+                )}
+              </Typography>
+            </Grid>
+          </Grid>
+        )}
+        {isLoading && (
           <CampaignListSkeleton />
         )}
       </Grid>
-
     </Paper>
   );
 };

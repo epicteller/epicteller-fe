@@ -40,7 +40,7 @@ const RegisterForm = () => {
   const classes = useStyles();
   const history = useHistory();
 
-  const { globalNotification } = useContext(StoreContext);
+  const { globalNotification, me: meStore } = useContext(StoreContext);
   const [token, setToken] = useState(useSearchParam('token'));
   const [isTokenError, setTokenError] = useState(false);
   const [isSubmiting, setIsSubmiting] = useState(false);
@@ -116,6 +116,7 @@ const RegisterForm = () => {
         password,
         name,
       });
+      meStore.refreshMe();
       history.push({ pathname: '/' });
     } catch (e) {
       const err = e as AxiosError;
