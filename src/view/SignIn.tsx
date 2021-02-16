@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite';
 import React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import RegisterForm from '../component/SignIn/RegisterForm';
+import ResetPasswordForm from '../component/SignIn/ResetPasswordForm';
 import SignInForm from '../component/SignIn/SignInForm';
 
 const useStyles = makeStyles((theme) => ({
@@ -53,6 +54,9 @@ const SignInView = observer(() => {
                 </Route>
                 <Route path="/register">
                   <RegisterForm />
+                </Route>
+                <Route path="/reset-password">
+                  <ResetPasswordForm />
                 </Route>
               </Switch>
             </div>

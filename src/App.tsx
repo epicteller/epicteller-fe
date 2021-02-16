@@ -28,6 +28,9 @@ const App = observer(() => {
         <Route path="/register" exact>
           <SignInView />
         </Route>
+        <Route path="/reset-password" exact>
+          <SignInView />
+        </Route>
         <Route path="/combat/:combatId" exact>
           <CombatView />
         </Route>

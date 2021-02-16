@@ -15,25 +15,25 @@ export class GlobalNotificationStore {
   }
 
   enqueueSnackbar(message: SnackbarMessage, options?: OptionsObject): SnackbarKey {
-    const key = new Date().getTime() + Math.random();
+    const key = Date.now() + Math.random();
     this.notifications.push(<Notification>{ key, message, options });
     return key;
   }
 
-  info(message: SnackbarMessage): SnackbarKey {
-    return this.enqueueSnackbar(message, { variant: 'info' });
+  info(message: SnackbarMessage, duration: number = 3000): SnackbarKey {
+    return this.enqueueSnackbar(message, { variant: 'info', autoHideDuration: duration });
   }
 
-  success(message: SnackbarMessage): SnackbarKey {
-    return this.enqueueSnackbar(message, { variant: 'success', autoHideDuration: 3000 });
+  success(message: SnackbarMessage, duration: number = 3000): SnackbarKey {
+    return this.enqueueSnackbar(message, { variant: 'success', autoHideDuration: duration });
   }
 
-  error(message: SnackbarMessage): SnackbarKey {
-    return this.enqueueSnackbar(message, { variant: 'error', autoHideDuration: 10000 });
+  error(message: SnackbarMessage, duration: number = 10000): SnackbarKey {
+    return this.enqueueSnackbar(message, { variant: 'error', autoHideDuration: duration });
   }
 
-  warn(message: SnackbarMessage): SnackbarKey {
-    return this.enqueueSnackbar(message, { variant: 'warning' });
+  warn(message: SnackbarMessage, duration: number = 5000): SnackbarKey {
+    return this.enqueueSnackbar(message, { variant: 'warning', autoHideDuration: duration });
   }
 }
 
